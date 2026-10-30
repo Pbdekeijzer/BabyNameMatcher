@@ -13,7 +13,7 @@ COPY apps ./apps
 COPY packages ./packages
 COPY scripts ./scripts
 RUN npm run build
-RUN npm prune --omit=dev
+RUN npm prune --omit=dev --ignore-scripts
 
 FROM node:24-bookworm-slim AS runtime
 

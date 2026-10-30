@@ -3,6 +3,7 @@ import { mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import Database from 'better-sqlite3';
+import { get } from 'node:http';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import type { CreateRoomResponse, JoinRoomResponse, SyncResponse } from '@baby-name-matcher/shared';
@@ -217,6 +218,28 @@ describe('HTTP API', () => {
     } });
     expect(response.statusCode).toBe(401);
     expect(database.connection.prepare('SELECT COUNT(*) AS count FROM decisions').get()).toEqual({ count: 0 });
+  });
+
+  it('shuts down cleanly while an event stream is connected', async () => {
+    const created = await app.inject({ method: 'POST', url: '/api/rooms', payload: { displayName: 'Alex' } });
+    const address = await app.listen({ host: '127.0.0.1', port: 0 });
+    const stream = await new Promise<import('node:http').IncomingMessage>((resolve, reject) => {
+      get(`${address}/api/events`, { headers: { cookie: cookieFrom(created.headers) } }, (response) => {
+        response.once('data', () => resolve(response));
+      }).once('error', reject);
+    });
+    const ended = new Promise<void>((resolve) => stream.once('end', resolve));
+    try {
+      await Promise.race([
+        Promise.all([app.close(), ended]),
+        new Promise<never>((_resolve, reject) => {
+          const timer = setTimeout(() => reject(new Error('Shutdown waited for an open event stream.')), 1000);
+          timer.unref();
+        }),
+      ]);
+    } finally {
+      stream.destroy();
+    }
   });
 
   it('exports only the creator room and never other rooms or deleted data', async () => {

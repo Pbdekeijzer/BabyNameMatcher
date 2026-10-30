@@ -245,7 +245,7 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
       'X-Accel-Buffering': 'no',
     });
     const unsubscribe = events.subscribe(context.roomId, reply.raw, revision);
-    request.raw.once('close', unsubscribe);
+    reply.raw.once('close', unsubscribe);
   });
 
   app.post('/api/backups/export', { config: { rateLimit: { max: 2, timeWindow: '1 minute' } } }, async (request, reply) => {
@@ -268,6 +268,7 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
   });
 
   const hasWebBuild = existsSync(config.webDist);
+  app.addHook('preClose', async () => events.close());
 
   app.setNotFoundHandler(async (request, reply) => {
     if (request.url.startsWith('/api/')) {
