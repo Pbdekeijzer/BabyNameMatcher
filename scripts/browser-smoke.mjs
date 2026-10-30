@@ -455,20 +455,32 @@ async function run() {
   );
   if (!passesSelected) throw new Error('Could not open the passes list.');
   await waitFor(partner, `document.querySelectorAll('.history-row').length > 1`, 'the passes history');
-  const passName = await evaluate(partner, `document.querySelector('.history-row strong').textContent.trim()`);
-  const historySearchFilled = await evaluate(
+  const passNames = await evaluate(
     partner,
-    pageExpression.fillById('history-search', passName.toLocaleLowerCase('nl-NL')),
+    `[...document.querySelectorAll('.history-row strong')].map((row) => row.textContent.trim())`,
   );
-  if (!historySearchFilled) throw new Error('Could not fill the history search field.');
-  await waitFor(
-    partner,
-    `(() => {
-      const rows = [...document.querySelectorAll('.history-row strong')];
-      return rows.length >= 1 && rows.every((row) => row.textContent.trim() === ${JSON.stringify(passName)});
-    })()`,
-    'the passes list to be filtered by name',
-  );
+  const searchKey = (value) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('nl-NL');
+  const expectedFor = (query) => passNames.filter((name) => searchKey(name).includes(searchKey(query)));
+  // A complete name can also match longer names, such as George and Georgel.
+  const sharedPrefix = passNames.map((name) => searchKey(name).slice(0, 1)).find((query) => {
+    const count = expectedFor(query).length;
+    return count > 1 && count < passNames.length;
+  });
+  if (!sharedPrefix) throw new Error('The history fixture has no shared prefix for the multiple-result search check.');
+  for (const query of [passNames[0].toLocaleLowerCase('nl-NL'), sharedPrefix]) {
+    const expectedNames = expectedFor(query);
+    const historySearchFilled = await evaluate(partner, pageExpression.fillById('history-search', query));
+    if (!historySearchFilled) throw new Error('Could not fill the history search field.');
+    await waitFor(
+      partner,
+      `(() => {
+        const names = [...document.querySelectorAll('.history-row strong')].map((row) => row.textContent.trim());
+        const expected = ${JSON.stringify(expectedNames)};
+        return names.length === expected.length && names.every((name, index) => name === expected[index]);
+      })()`,
+      'the passes list to show every matching name and exclude unrelated names',
+    );
+  }
 
   const screenshot = await cdp.send(
     'Page.captureScreenshot',
@@ -495,7 +507,7 @@ async function run() {
           'duplicate custom-name feedback',
           'custom name',
           '1,000-rating offline queue, reload, and batched sync',
-          'likes and passes search filter',
+          'passes history substring search, including multiple matches',
         ],
         screenshot: screenshotPath,
       },
