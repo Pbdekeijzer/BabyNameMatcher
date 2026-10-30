@@ -25,4 +25,11 @@ export class RoomEventBroker {
       if (!response.destroyed) response.write(`event: revision\ndata: ${revision}\n\n`);
     }
   }
+
+  close(): void {
+    for (const responses of this.listeners.values()) {
+      for (const response of responses) response.end();
+    }
+    this.listeners.clear();
+  }
 }
