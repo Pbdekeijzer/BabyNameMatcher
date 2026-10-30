@@ -1,0 +1,9 @@
+{
+  "name": "@baby-name-matcher/deepmerge",
+  "version": "4.3.2",
+  "private": true,
+  "description": "Locally patched deepmerge 4.3.1 for GHSA-gcqx-w48m-w2h4",
+  "main": "index.cjs",
+  "license": "MIT",
+  "files": ["index.cjs", "LICENSE", "README.md"]
+}

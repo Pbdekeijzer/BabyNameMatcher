@@ -1,0 +1,21 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: baby-name-matcher:local
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3000
+      RUNTIME_DIR: /app/runtime
+      WEB_DIST: /app/apps/web/dist
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-}
+      TRUST_PROXY: ${TRUST_PROXY:-}
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${PORT:-3000}:3000"
+    volumes:
+      - ./runtime:/app/runtime

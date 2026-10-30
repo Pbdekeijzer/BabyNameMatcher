@@ -1,0 +1,16 @@
+node_modules
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+coverage
+runtime
+.git
+.env
+.env.*
+!.env.example
+**/*.sqlite*
+**/*.db*
+**/*.pem
+**/*.key
+.npmrc
+*.log

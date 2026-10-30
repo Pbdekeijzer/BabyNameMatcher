@@ -1,0 +1,40 @@
+{
+  "name": "baby-name-matcher",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MIT",
+  "packageManager": "npm@11.10.1",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @baby-name-matcher/shared && npm run build -w @baby-name-matcher/server && npm run build -w @baby-name-matcher/web",
+    "predev": "npm run build -w @baby-name-matcher/shared",
+    "dev": "concurrently -k -n server,web -c magenta,cyan \"node --env-file-if-exists=.env --import tsx --watch apps/server/src/index.ts\" \"npm run dev -w @baby-name-matcher/web\"",
+    "start": "node --env-file-if-exists=.env apps/server/dist/index.js",
+    "test": "npm run build -w @baby-name-matcher/shared && vitest run",
+    "test:browser": "node scripts/browser-smoke.mjs",
+    "test:watch": "vitest",
+    "typecheck": "npm run build -w @baby-name-matcher/shared && npm run typecheck -w @baby-name-matcher/shared && npm run typecheck -w @baby-name-matcher/server && npm run typecheck -w @baby-name-matcher/web",
+    "catalogue:generate": "node scripts/generate-catalogue.mjs",
+    "catalogue:refresh-netherlands": "node scripts/import-netherlands-2025.mjs && node scripts/generate-catalogue.mjs",
+    "catalogue:refresh-western-europe": "node scripts/import-western-europe.mjs && node scripts/generate-catalogue.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "concurrently": "^9.2.1",
+    "deepmerge": "file:vendor/deepmerge",
+    "fake-indexeddb": "^6.2.7",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.7",
+    "vitest": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "overrides": {
+    "deepmerge": "$deepmerge"
+  }
+}

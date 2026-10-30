@@ -1,0 +1,24 @@
+{
+  "name": "@baby-name-matcher/server",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "cd ../.. && node --env-file-if-exists=.env --import tsx --watch apps/server/src/index.ts",
+    "start": "cd ../.. && node --env-file-if-exists=.env apps/server/dist/index.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@baby-name-matcher/shared": "1.0.0",
+    "@fastify/cookie": "^11.0.2",
+    "@fastify/helmet": "^13.0.2",
+    "@fastify/rate-limit": "^10.3.0",
+    "better-sqlite3": "^13.0.3",
+    "fastify": "^5.6.2"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "tsx": "^4.20.6"
+  }
+}

@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  application:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm rebuild esbuild
+      - run: npm audit --audit-level=low
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npm run test:browser
+
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - run: docker compose config --quiet
+      - run: mkdir runtime && sudo chown 1000:1000 runtime
+      - run: docker compose up -d --build --wait --wait-timeout 90
+      - run: curl --fail http://127.0.0.1:3000/api/health
+      - run: curl --fail http://127.0.0.1:3000/
+      - if: always()
+        run: docker compose down
+
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Scan source history for secrets
+        run: >-
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.30.1
+          git /repo --redact=100 --no-banner
