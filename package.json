@@ -23,7 +23,7 @@
     "catalogue:refresh-western-europe": "node scripts/import-western-europe.mjs && node scripts/generate-catalogue.mjs"
   },
   "devDependencies": {
-    "@types/node": "^24.10.0",
+    "@types/node": "^26.6.5",
     "concurrently": "^9.2.1",
     "deepmerge": "file:vendor/deepmerge",
     "fake-indexeddb": "^6.2.7",
