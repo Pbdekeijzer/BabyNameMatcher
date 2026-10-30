@@ -362,10 +362,12 @@ async function run() {
     `(async () => { const registration = await navigator.serviceWorker.ready; return Boolean(registration.active); })()`,
   );
   if (!ready) throw new Error('The service worker did not become active.');
-  if (!(await evaluate(partner, `Boolean(navigator.serviceWorker.controller)`))) {
-    await cdp.send('Page.reload', {}, partner.sessionId);
-    await waitFor(partner, `document.body?.innerText.includes('Add a name')`, 'the service-worker-controlled app');
-  }
+  // A reload intentionally opens Discover; the current navigation tab is not persisted.
+  // Always exercise this path instead of racing the worker's initial clients.claim().
+  await cdp.send('Page.reload', {}, partner.sessionId);
+  await waitFor(partner,
+    `Boolean(navigator.serviceWorker.controller) && document.querySelector('.name-card h2') !== null`,
+    'the service-worker-controlled app');
   await cdp.send('Network.enable', {}, partner.sessionId);
   if (managesServer) {
     await stopAppServer();
