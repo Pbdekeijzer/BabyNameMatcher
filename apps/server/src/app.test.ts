@@ -209,6 +209,18 @@ describe('HTTP API', () => {
     expect(malformed.headers['cache-control']).toBe('no-store');
   });
 
+  it('shares authentication rate limits across addresses in the same IPv6 subnet', async () => {
+    for (let attempt = 0; attempt < 9; attempt += 1) {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/join',
+        remoteAddress: `2001:db8:1234:5678::${attempt + 1}`,
+        payload: { inviteToken: 'not-a-valid-invitation-token', pin: '000000', displayName: 'Alex' },
+      });
+      expect(response.statusCode).toBe(attempt < 8 ? 401 : 429);
+    }
+  });
+
   it('rejects sync operations bound to a different participant', async () => {
     const created = await app.inject({ method: 'POST', url: '/api/rooms', payload: { displayName: 'Alex' } });
     const bootstrap = created.json<CreateRoomResponse>().bootstrap;
