@@ -38,7 +38,7 @@ COPY --from=build /app/apps/server/dist ./apps/server/dist
 COPY --from=build /app/apps/web/dist ./apps/web/dist
 COPY --from=build /app/packages/shared/dist ./packages/shared/dist
 
-RUN mkdir -p /app/runtime && chown -R node:node /app
+RUN mkdir -p /app/runtime && chown node:node /app/runtime
 USER node
 
 EXPOSE 3000
