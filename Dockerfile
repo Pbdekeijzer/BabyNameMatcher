@@ -1,4 +1,4 @@
-FROM node:24-bookworm-slim AS build
+FROM node:25-bookworm-slim AS build
 
 WORKDIR /app
 COPY package.json package-lock.json tsconfig.base.json vitest.config.ts ./
@@ -15,7 +15,7 @@ COPY scripts ./scripts
 RUN npm run build
 RUN npm prune --omit=dev --ignore-scripts
 
-FROM node:24-bookworm-slim AS runtime
+FROM node:25-bookworm-slim AS runtime
 
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
