@@ -35,6 +35,9 @@
     "node": ">=24 <25"
   },
   "overrides": {
-    "deepmerge": "$deepmerge"
+    "deepmerge": "$deepmerge",
+    "workbox-build": {
+      "glob": "^14.0.4"
+    }
   }
 }
